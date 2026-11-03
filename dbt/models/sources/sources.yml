@@ -1,0 +1,40 @@
+version: 2
+sources:
+- name: raw
+  schema: transactions_db
+  description: Исходные размеченные транзакции из train.csv.
+  tables:
+  - name: transactions
+    description: Полная схема транзакций для аналитики фрода.
+    data_tests:
+    - dbt_expectations.expect_table_row_count_to_be_between:
+        arguments:
+          min_value: 1
+    columns:
+    - name: transaction_time
+      description: Время транзакции. Часовой пояс в CSV отсутствует; часы сохраняются
+        как UTC.
+    - name: merch
+      description: Название мерчанта.
+    - name: cat_id
+      description: Категория покупки.
+    - name: amount
+      description: Сумма транзакции.
+    - name: name_1
+      description: Имя клиента.
+    - name: name_2
+      description: Фамилия клиента.
+    - name: gender
+      description: Пол клиента.
+    - name: us_state
+      description: Код штата или DC.
+    - name: lat
+      description: Широта клиента.
+    - name: lon
+      description: Долгота клиента.
+    - name: merchant_lat
+      description: Широта мерчанта.
+    - name: merchant_lon
+      description: Долгота мерчанта.
+    - name: target
+      description: 'Разметка мошенничества: 0 или 1.'

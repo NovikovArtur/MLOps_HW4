@@ -1,0 +1,6 @@
+__pycache__
+*.pyc
+teta-ml-1-2025
+target
+logs
+dbt_packages

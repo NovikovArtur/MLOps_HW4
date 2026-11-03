@@ -1,0 +1,151 @@
+version: 2
+models:
+- name: mart_daily_state_metrics
+  description: Дневные объёмы и распределение сумм по штатам.
+  columns:
+  - name: transaction_date
+    description: Календарная дата транзакции.
+    data_tests:
+    - not_null
+  - name: state_code
+    description: Код территории из справочника states.
+    data_tests:
+    - not_null
+  - name: transaction_count
+    description: Число транзакций в группе.
+  - name: total_amount
+    description: Сумма всех транзакций в группе.
+  - name: avg_amount
+    description: Средняя сумма транзакции.
+  - name: p95_amount
+    description: Точный дискретный квантиль 0.95 по сумме.
+  - name: large_transaction_share
+    description: Доля транзакций LARGE в процентах.
+  data_tests:
+  - dbt_utils.unique_combination_of_columns:
+      arguments:
+        combination_of_columns:
+        - transaction_date
+        - state_code
+- name: mart_fraud_by_category
+  description: Сравнение фрода по категориям.
+  columns:
+  - name: category
+    description: Категория в нижнем регистре.
+    data_tests:
+    - not_null
+    - unique
+  - name: transaction_count
+    description: Число транзакций в группе.
+  - name: fraud_count
+    description: Число мошеннических транзакций.
+  - name: fraud_rate
+    description: Доля мошеннических транзакций в процентах, от 0 до 100.
+  - name: total_amount
+    description: Сумма всех транзакций в группе.
+  - name: fraud_amount
+    description: Сумма мошеннических транзакций.
+- name: mart_fraud_by_state
+  description: География фрода с названиями территорий.
+  columns:
+  - name: state_code
+    description: Код территории из справочника states.
+    data_tests:
+    - not_null
+    - unique
+  - name: state_name
+    description: Полное название штата или округа Колумбия.
+  - name: transaction_count
+    description: Число транзакций в группе.
+  - name: fraud_count
+    description: Число мошеннических транзакций.
+  - name: fraud_rate
+    description: Доля мошеннических транзакций в процентах, от 0 до 100.
+  - name: unique_customers
+    description: Точное число составных идентификаторов клиентов.
+  - name: unique_merchants
+    description: Точное число мерчантов.
+  - name: total_amount
+    description: Сумма всех транзакций в группе.
+  - name: fraud_amount
+    description: Сумма мошеннических транзакций.
+- name: mart_customer_risk_profile
+  description: Описательный профиль клиента за всю доступную историю.
+  columns:
+  - name: customer_id
+    description: Хеш имени, фамилии, пола, штата и координат. Приближённый идентификатор
+      клиента.
+    data_tests:
+    - not_null
+    - unique
+  - name: transaction_count
+    description: Число транзакций в группе.
+  - name: fraud_count
+    description: Число мошеннических транзакций.
+  - name: fraud_rate
+    description: Доля мошеннических транзакций в процентах, от 0 до 100.
+  - name: total_amount
+    description: Сумма всех транзакций в группе.
+  - name: avg_amount
+    description: Средняя сумма транзакции.
+  - name: first_transaction_time
+    description: Начало истории клиента.
+  - name: last_transaction_time
+    description: Конец истории клиента.
+  - name: active_days
+    description: Число разных дат с транзакциями клиента.
+  - name: risk_level
+    description: HIGH при fraud_rate >= 5%, MEDIUM при >= 1%, иначе LOW.
+- name: mart_hourly_fraud_pattern
+  description: Фрод по сочетанию дня недели и часа.
+  columns:
+  - name: day_of_week
+    description: 'День недели: понедельник 1, воскресенье 7.'
+    data_tests:
+    - not_null
+  - name: transaction_hour
+    description: Час из исходного времени, от 0 до 23.
+    data_tests:
+    - not_null
+  - name: transaction_count
+    description: Число транзакций в группе.
+  - name: fraud_count
+    description: Число мошеннических транзакций.
+  - name: fraud_rate
+    description: Доля мошеннических транзакций в процентах, от 0 до 100.
+  - name: total_amount
+    description: Сумма всех транзакций в группе.
+  - name: fraud_amount
+    description: Сумма мошеннических транзакций.
+  - name: avg_amount
+    description: Средняя сумма транзакции.
+  data_tests:
+  - dbt_utils.unique_combination_of_columns:
+      arguments:
+        combination_of_columns:
+        - day_of_week
+        - transaction_hour
+- name: mart_merchant_analytics
+  description: Оборот, клиенты и признаки риска мерчантов.
+  columns:
+  - name: merchant
+    description: Название мерчанта без пробелов по краям.
+    data_tests:
+    - not_null
+    - unique
+  - name: transaction_count
+    description: Число транзакций в группе.
+  - name: fraud_count
+    description: Число мошеннических транзакций.
+  - name: fraud_rate
+    description: Доля мошеннических транзакций в процентах, от 0 до 100.
+  - name: total_amount
+    description: Сумма всех транзакций в группе.
+  - name: fraud_amount
+    description: Сумма мошеннических транзакций.
+  - name: avg_amount
+    description: Средняя сумма транзакции.
+  - name: unique_customers
+    description: Точное число составных идентификаторов клиентов.
+  - name: is_suspicious
+    description: 1 при fraud_rate >= 5% и не менее 100 транзакциях, иначе 0.
