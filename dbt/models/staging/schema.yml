@@ -1,0 +1,70 @@
+version: 2
+models:
+- name: stg_transactions
+  description: Нормализация регистра, пробелов, типов, дат и сегментов суммы. Все
+    строки источника сохраняются.
+  columns:
+  - name: customer_id
+    description: Хеш имени, фамилии, пола, штата и координат. Приближённый идентификатор
+      клиента.
+    data_tests:
+    - not_null
+  - name: transaction_time
+    description: Время транзакции. Часовой пояс в CSV отсутствует; часы сохраняются
+      как UTC.
+    data_tests:
+    - not_null
+  - name: transaction_date
+    description: Календарная дата транзакции.
+    data_tests:
+    - not_null
+  - name: day_of_week
+    description: 'День недели: понедельник 1, воскресенье 7.'
+  - name: transaction_hour
+    description: Час из исходного времени, от 0 до 23.
+  - name: merchant
+    description: Название мерчанта без пробелов по краям.
+    data_tests:
+    - not_null
+  - name: category
+    description: Категория в нижнем регистре.
+    data_tests:
+    - not_null
+  - name: amount
+    description: Сумма Decimal(18, 2), два знака после запятой.
+    data_tests:
+    - not_null
+  - name: amount_bucket
+    description: SMALL меньше 100; MEDIUM от 100 до 1000; LARGE от 1000.
+    data_tests:
+    - accepted_values:
+        arguments:
+          values:
+          - SMALL
+          - MEDIUM
+          - LARGE
+          quote: true
+  - name: gender
+    description: Пол в верхнем регистре.
+  - name: state_code
+    description: Код территории из справочника states.
+    data_tests:
+    - not_null
+  - name: latitude
+    description: Широта клиента.
+  - name: longitude
+    description: Долгота клиента.
+  - name: merchant_latitude
+    description: Широта мерчанта.
+  - name: merchant_longitude
+    description: Долгота мерчанта.
+  - name: is_fraud
+    description: Разметка мошенничества.
+    data_tests:
+    - not_null
+    - accepted_values:
+        arguments:
+          values:
+          - 0
+          - 1
+          quote: false

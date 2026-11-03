@@ -1,0 +1,17 @@
+[sqlfluff]
+dialect = clickhouse
+templater = dbt
+max_line_length = 160
+rules = LT01, LT02, LT05, LT09, LT12, CP01, CP02, AL01, AL02
+
+[sqlfluff:templater:dbt]
+project_dir = .
+profiles_dir = .
+profile = hw4
+target = dev
+
+[sqlfluff:rules:capitalisation.keywords]
+capitalisation_policy = lower
+
+[sqlfluff:rules:capitalisation.identifiers]
+extended_capitalisation_policy = lower

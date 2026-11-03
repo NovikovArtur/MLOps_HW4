@@ -1,0 +1,152 @@
+version: 2
+unit_tests:
+- name: staging_amount_boundaries_and_normalization
+  model: stg_transactions
+  given:
+  - input: source('raw', 'transactions')
+    rows:
+    - transaction_time: '2024-01-01 00:00:00'
+      merch: ' Shop '
+      cat_id: ' GROCERY_POS '
+      amount: 0
+      name_1: ' Jane '
+      name_2: ' DOE '
+      gender: ' f '
+      us_state: ' ca '
+      lat: 34.0
+      lon: -118.0
+      merchant_lat: 34.1
+      merchant_lon: -118.1
+      target: 0
+    - transaction_time: '2024-01-01 00:00:00'
+      merch: ' Shop '
+      cat_id: ' GROCERY_POS '
+      amount: 99.99
+      name_1: ' Jane '
+      name_2: ' DOE '
+      gender: ' f '
+      us_state: ' ca '
+      lat: 34.0
+      lon: -118.0
+      merchant_lat: 34.1
+      merchant_lon: -118.1
+      target: 0
+    - transaction_time: '2024-01-01 00:00:00'
+      merch: ' Shop '
+      cat_id: ' GROCERY_POS '
+      amount: 100
+      name_1: ' Jane '
+      name_2: ' DOE '
+      gender: ' f '
+      us_state: ' ca '
+      lat: 34.0
+      lon: -118.0
+      merchant_lat: 34.1
+      merchant_lon: -118.1
+      target: 0
+    - transaction_time: '2024-01-01 00:00:00'
+      merch: ' Shop '
+      cat_id: ' GROCERY_POS '
+      amount: 999.99
+      name_1: ' Jane '
+      name_2: ' DOE '
+      gender: ' f '
+      us_state: ' ca '
+      lat: 34.0
+      lon: -118.0
+      merchant_lat: 34.1
+      merchant_lon: -118.1
+      target: 0
+    - transaction_time: '2024-01-01 00:00:00'
+      merch: ' Shop '
+      cat_id: ' GROCERY_POS '
+      amount: 1000
+      name_1: ' Jane '
+      name_2: ' DOE '
+      gender: ' f '
+      us_state: ' ca '
+      lat: 34.0
+      lon: -118.0
+      merchant_lat: 34.1
+      merchant_lon: -118.1
+      target: 0
+  expect:
+    rows:
+    - amount: 0
+      amount_bucket: SMALL
+      merchant: Shop
+      category: grocery_pos
+      gender: F
+      state_code: CA
+      day_of_week: 1
+      transaction_hour: 0
+      is_fraud: 0
+    - amount: 99.99
+      amount_bucket: SMALL
+      merchant: Shop
+      category: grocery_pos
+      gender: F
+      state_code: CA
+      day_of_week: 1
+      transaction_hour: 0
+      is_fraud: 0
+    - amount: 100
+      amount_bucket: MEDIUM
+      merchant: Shop
+      category: grocery_pos
+      gender: F
+      state_code: CA
+      day_of_week: 1
+      transaction_hour: 0
+      is_fraud: 0
+    - amount: 999.99
+      amount_bucket: MEDIUM
+      merchant: Shop
+      category: grocery_pos
+      gender: F
+      state_code: CA
+      day_of_week: 1
+      transaction_hour: 0
+      is_fraud: 0
+    - amount: 1000
+      amount_bucket: LARGE
+      merchant: Shop
+      category: grocery_pos
+      gender: F
+      state_code: CA
+      day_of_week: 1
+      transaction_hour: 0
+      is_fraud: 0
+- name: daily_state_grain_and_large_share
+  model: mart_daily_state_metrics
+  given:
+  - input: ref('stg_transactions')
+    rows:
+    - transaction_date: '2024-01-01'
+      state_code: CA
+      amount: 100
+      amount_bucket: MEDIUM
+    - transaction_date: '2024-01-01'
+      state_code: CA
+      amount: 1000
+      amount_bucket: LARGE
+    - transaction_date: '2024-01-02'
+      state_code: CA
+      amount: 10
+      amount_bucket: SMALL
+  expect:
+    rows:
+    - transaction_date: '2024-01-01'
+      state_code: CA
+      transaction_count: 2
+      total_amount: 1100
+      avg_amount: 550
+      p95_amount: 1000
+      large_transaction_share: 50
+    - transaction_date: '2024-01-02'
+      state_code: CA
+      transaction_count: 1
+      total_amount: 10
+      avg_amount: 10
+      p95_amount: 10
+      large_transaction_share: 0

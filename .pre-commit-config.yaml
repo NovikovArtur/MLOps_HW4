@@ -1,0 +1,9 @@
+repos:
+  - repo: local
+    hooks:
+      - id: sqlfluff-lint
+        name: sqlfluff lint
+        entry: make lint
+        language: system
+        files: ^dbt/.*\.(sql|yml)$
+        pass_filenames: false

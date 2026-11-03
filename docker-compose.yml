@@ -1,0 +1,49 @@
+services:
+  clickhouse:
+    image: clickhouse/clickhouse-server:25.8.33.6
+    environment:
+      CLICKHOUSE_USER: hw4
+      CLICKHOUSE_PASSWORD: hw4_local
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: "1"
+    ports:
+      - "127.0.0.1:8124:8123"
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+      - ./clickhouse/init.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+    healthcheck:
+      test: [CMD, clickhouse-client, --user, hw4, --password, hw4_local, --query, SELECT 1]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  dbt:
+    build: ./dbt
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+    environment:
+      CLICKHOUSE_HOST: clickhouse
+      CLICKHOUSE_PORT: "8123"
+      CLICKHOUSE_USER: hw4
+      CLICKHOUSE_PASSWORD: hw4_local
+    volumes:
+      - .:/work
+      - ./dbt/teta-ml-1-2025:/data:ro
+    command:
+      - sh
+      - -ec
+      - python /work/dbt/scripts/load_transactions.py /data/train.csv && python /work/dbt/scripts/run_pipeline.py
+
+  docs:
+    build: ./dbt
+    depends_on:
+      dbt:
+        condition: service_completed_successfully
+    volumes:
+      - ./dbt/target:/work/dbt/target:ro
+    ports:
+      - "127.0.0.1:8084:8080"
+    command: [python, -u, -m, http.server, "8080", --bind, 0.0.0.0, --directory, /work/dbt/target]
+
+volumes:
+  clickhouse_data:
